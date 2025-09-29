@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    restart: always
+    container_name: gym-buddy-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: gym_admin
+      MONGO_INITDB_ROOT_PASSWORD: gym_password_2024
+      MONGO_INITDB_DATABASE: gym_buddy
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - gym-buddy-network
+
+  # Optional: MongoDB Express for database management UI
+  mongo-express:
+    image: mongo-express:1.0.0
+    restart: always
+    container_name: gym-buddy-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: gym_admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: gym_password_2024
+      ME_CONFIG_MONGODB_URL: mongodb://gym_admin:gym_password_2024@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    depends_on:
+      - mongodb
+    networks:
+      - gym-buddy-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  gym-buddy-network:
+    driver: bridge
