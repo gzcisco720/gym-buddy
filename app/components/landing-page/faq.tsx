@@ -17,7 +17,7 @@ const Faq = () => {
             <span className="text-primary">FAQs</span>
           </h2>
           <p className="text-base xl:leading-7 text-center text-default-700 ">
-            <strong> Got Questions?</strong> We've compiled a list of answers to your frequently asked questions. If you can't find what you're looking for here, don't hesitate to reach out to us.
+            <strong> Got Questions?</strong> We&apos;ve compiled a list of answers to your frequently asked questions. If you can&apos;t find what you&apos;re looking for here, don&apos;t hesitate to reach out to us.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ const Faq = () => {
                   Which license should I use for a SaaS application?
                 </AccordionTrigger>
                 <AccordionContent className="text-sm xl:text-base text-default-700">
-                  If your SaaS application charges users, you'll need an Extended License for each end product.
+                  If your SaaS application charges users, you&apos;ll need an Extended License for each end product.
                   Otherwise, a Regular License is adequate. You can learn more from {" "}
                   <Link href="https://themeforest.net/licenses/faq#faq-section-regular-and-extended-licenses" target="_blank" className="text-primary">Envato</Link>.
                 </AccordionContent>
@@ -71,7 +71,7 @@ const Faq = () => {
                   Do you provide design frames and GitHub access?
                 </AccordionTrigger>
                 <AccordionContent className="text-sm xl:text-base text-default-700">
-                  DashTail itself doesn’t include Figma design files automatically, but we're happy to provide them for free upon request. This allows for flexible customization within Figma.
+                  DashTail itself doesn&apos;t include Figma design files automatically, but we&apos;re happy to provide them for free upon request. This allows for flexible customization within Figma.
                   If you need GitHub access then you can ask our     <Link href="https://codeshaperbd.freshdesk.com/support/login" target="_blank" className="text-primary">support team</Link>. for GitHub access.
                 </AccordionContent>
               </AccordionItem>
@@ -84,7 +84,7 @@ const Faq = () => {
                 </AccordionTrigger>
                 <AccordionContent className="text-sm xl:text-base text-default-700">
                   Using DashTail effectively requires a foundational knowledge of front-end development, particularly with Tailwind and React for deeper customization.
-                  It's important to remember that DashTail is a front-end template;
+                  It&apos;s important to remember that DashTail is a front-end template;
                   knowledge of back-end development is also necessary for full project development.
                 </AccordionContent>
               </AccordionItem>
@@ -113,7 +113,7 @@ const Faq = () => {
                   What is your support policy?
                 </AccordionTrigger>
                 <AccordionContent className="text-sm xl:text-base text-default-700">
-                  We offer dedicated support through our portal, following Envato's item <Link href="https://themeforest.net/page/item_support_policy" target="_blank" className="text-primary">support policy </Link> closely to provide timely and efficient help.
+                  We offer dedicated support through our portal, following Envato&apos;s item <Link href="https://themeforest.net/page/item_support_policy" target="_blank" className="text-primary">support policy </Link> closely to provide timely and efficient help.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem
@@ -125,7 +125,7 @@ const Faq = () => {
                 </AccordionTrigger>
                 <AccordionContent className="text-sm xl:text-base text-default-700">
                   Absolutely. DashTail is meticulously crafted to streamline the development process, offering a seamless and efficient way to build your web UI.
-                  It's a worthwhile investment for any developer looking for quality and efficiency.
+                  It&apos;s a worthwhile investment for any developer looking for quality and efficiency.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem

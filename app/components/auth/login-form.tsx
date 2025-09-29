@@ -220,7 +220,7 @@ const LogInForm = () => {
         </Button>
       </div>
       <div className="mt-5 2xl:mt-8 text-center text-base text-default-600">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/auth/register" className="text-primary">
           {" "}
           Sign Up{" "}

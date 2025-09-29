@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
           email: profile.email,
           image: profile.picture,
           role: UserRole.MEMBER, // Default role for new Google users
+          isActive: true, // Default active status for new OAuth users
         };
       },
     }),
@@ -40,6 +41,7 @@ export const authOptions: NextAuthOptions = {
           email: profile.email,
           image: profile.avatar_url,
           role: UserRole.MEMBER, // Default role for new GitHub users
+          isActive: true, // Default active status for new OAuth users
         };
       },
     }),
@@ -61,7 +63,7 @@ export const authOptions: NextAuthOptions = {
           // Find user by email with password field
           const user = await User.findOne({ email: credentials.email.toLowerCase() })
             .select("+password")
-            .lean();
+            .lean() as (IUser & { password: string }) | null;
 
           if (!user) {
             throw new Error("No user found with this email");
@@ -88,7 +90,6 @@ export const authOptions: NextAuthOptions = {
           });
 
           // Return user object (without password)
-          const { password, ...userWithoutPassword } = user;
           return {
             id: user._id.toString(),
             email: user.email,
@@ -182,7 +183,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       // Allow all credential sign-ins that pass authorization
       if (account?.provider === "credentials") {
         return true;
@@ -210,7 +211,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   events: {
-    async signIn({ user, account, isNewUser }) {
+    async signIn({ user, account }) {
       console.log(`User ${user.email} signed in with ${account?.provider || "credentials"}`);
     },
     async signOut({ token }) {
