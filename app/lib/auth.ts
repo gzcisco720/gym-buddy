@@ -201,7 +201,7 @@ export const authOptions: NextAuthOptions = {
       // Redirect to dashboard after successful sign in
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
-      return `${baseUrl}/dashboard`;
+      return `${baseUrl}/overview`;
     },
   },
 

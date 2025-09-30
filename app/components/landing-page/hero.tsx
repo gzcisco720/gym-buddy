@@ -29,7 +29,7 @@ const Hero = () => {
               </p>
               <div className="flex mt-9 justify-center gap-4 lg:gap-8">
                 <Button asChild size="xl">
-                  <Link href="/dashboard"> View Demo </Link>
+                  <Link href="/overview"> View Demo </Link>
                 </Button>
                 <Button asChild variant="outline" size="xl">
                   <Link href="https://dash-tail.vercel.app/docs/introduction" target="_blank">

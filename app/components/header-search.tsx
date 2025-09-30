@@ -58,7 +58,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                 </CommandItem>
                 <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
                   <Link
-                    href="/dashboard"
+                    href="/overview"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
                     <Icon icon="heroicons:chart-bar" />
@@ -110,7 +110,7 @@ const HeaderSearch = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
                 </CommandItem>
                 <CommandItem className="aria-selected:bg-transparent p-0 mb-2.5">
                   <Link
-                    href="/dashboard"
+                    href="/overview"
                     className="flex gap-1 items-center px-2 text-default-500 hover:text-primary "
                   >
                     <Icon icon="heroicons:user" />

@@ -19,7 +19,7 @@ export default withAuth(
 
     // If user is authenticated and trying to access auth pages, redirect to dashboard
     if (isAuth && isAuthPage) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return NextResponse.redirect(new URL("/overview", req.url));
     }
 
     return NextResponse.next();

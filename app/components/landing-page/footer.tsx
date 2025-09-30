@@ -63,7 +63,7 @@ const Footer = () => {
             DashTail is a developer-friendly, ready-to-use admin template designed for building attractive, scalable, and high-performing web applications, powered by the cutting-edge technologies of Next.js and Tailwind CSS.</p>
           <div className="mt-9 flex justify-center flex-wrap gap-4">
             <Button asChild variant="outline" className="rounded text-primary-foreground border-primary">
-              <Link href="/dashboard" target="__blank">View Demo</Link>
+              <Link href="/overview" target="__blank">View Demo</Link>
             </Button>
             <Button asChild variant="outline" className="rounded text-primary-foreground border-primary">
               <Link href="/docs/introduction">View Documentation</Link>

@@ -22,7 +22,7 @@ export const menusConfig = {
       {
       title: "Dashboard",
       icon: DashBoard,
-      href: "/dashboard",
+      href: "/overview",
     },
     {
       title: "Body Test",
@@ -35,7 +35,7 @@ export const menusConfig = {
       {
         title: "Dashboard",
         icon: DashBoard,
-        href: "/dashboard",
+        href: "/overview",
       },
       {
         title: "Body Test",
@@ -51,7 +51,7 @@ export const menusConfig = {
       {
         title: "Dashboard",
         icon: DashBoard,
-        href: "/dashboard",
+        href: "/overview",
       },
       {
         isHeader: true,

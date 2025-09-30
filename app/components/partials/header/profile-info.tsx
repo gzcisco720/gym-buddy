@@ -46,7 +46,7 @@ const ProfileInfo = () => {
               {"Mcc Callem"}
             </div>
             <Link
-              href="/dashboard"
+              href="/overview"
               className="text-xs text-default-600 hover:text-primary"
             >
               @uxuidesigner
@@ -63,17 +63,17 @@ const ProfileInfo = () => {
             {
               name: "Billing",
               icon: "heroicons:megaphone",
-              href: "/dashboard"
+              href: "/overview"
             },
             {
               name: "Settings",
               icon: "heroicons:paper-airplane",
-              href: "/dashboard"
+              href: "/overview"
             },
             {
               name: "Keyboard shortcuts",
               icon: "heroicons:language",
-              href: "/dashboard"
+              href: "/overview"
             },
           ].map((item, index) => (
             <Link
@@ -90,7 +90,7 @@ const ProfileInfo = () => {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <Link href="/dashboard" className="cursor-pointer">
+          <Link href="/overview" className="cursor-pointer">
             <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
               <Icon icon="heroicons:user-group" className="w-4 h-4" />
               team
@@ -115,7 +115,7 @@ const ProfileInfo = () => {
                   },
                 ].map((item, index) => (
                   <Link
-                    href="/dashboard"
+                    href="/overview"
                     key={`message-sub-${index}`}
                     className="cursor-pointer"
                   >
@@ -127,7 +127,7 @@ const ProfileInfo = () => {
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
-          <Link href="/dashboard">
+          <Link href="/overview">
             <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
               <Icon icon="heroicons:variable" className="w-4 h-4" />
               Github
@@ -152,7 +152,7 @@ const ProfileInfo = () => {
                     name: "whatsapp",
                   },
                 ].map((item, index) => (
-                  <Link href="/dashboard" key={`message-sub-${index}`}>
+                  <Link href="/overview" key={`message-sub-${index}`}>
                     <DropdownMenuItem className="text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
                       {item.name}
                     </DropdownMenuItem>

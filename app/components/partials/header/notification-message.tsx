@@ -92,7 +92,7 @@ const NotificationMessage = () => {
         <DropdownMenuSeparator />
         <div className="m-4 mt-5">
           <Button asChild className="w-full">
-            <Link href="/dashboard">View All</Link>
+            <Link href="/overview">View All</Link>
           </Button>
         </div>
       </DropdownMenuContent>

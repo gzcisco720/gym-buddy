@@ -48,7 +48,7 @@ const VerfiyForm = () => {
 
   return (
     <div className="w-full md:w-[480px] py-5">
-      <Link href="/dashboard" className="inline-block">
+      <Link href="/overview" className="inline-block">
         <SiteLogo className="h-10 w-10 2xl:h-14 2xl:w-14 text-primary" />
       </Link>
       <div className="2xl:mt-8 mt-6 2xl:text-3xl text-2xl font-bold text-default-900">

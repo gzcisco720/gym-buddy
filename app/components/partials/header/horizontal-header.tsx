@@ -6,7 +6,7 @@ const horizontalHeader = () => {
     <div className="flex items-center lg:gap-12 gap-3 ">
       <div>
         <Link
-          href="/dashboard"
+          href="/overview"
           className=" text-primary flex items-center gap-2"
         >
           <SiteLogo className="h-7 w-7" />

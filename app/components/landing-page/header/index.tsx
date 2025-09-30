@@ -109,7 +109,7 @@ const Header = () => {
   return (
     <div className={scroll ? "bg-card/50 backdrop-blur-lg shadow-xl z-30 dark:bg-card/70 fixed top-0 left-0 w-full py-3" : " z-30 fixed top-0 left-0 w-full py-3"}>
       <nav className="container flex justify-between">
-        <Link target="_blank" href="/dashboard" className="flex items-center gap-1">
+        <Link target="_blank" href="/overview" className="flex items-center gap-1">
           <SiteLogo className="h-8 w-8  text-primary" />
           <span className="text-primary-500 font-medium text-xl">DashTail</span>
         </Link>

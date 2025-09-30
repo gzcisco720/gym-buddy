@@ -26,7 +26,7 @@ const ErrorBlock = () => {
             name changed or is temporarily unavailable.
           </div>
           <Button asChild className="mt-9  md:min-w-[300px]" size="lg">
-            <Link href="/dashboard">Go to Homepage</Link>
+            <Link href="/overview">Go to Homepage</Link>
           </Button>
         </div>
       </div>

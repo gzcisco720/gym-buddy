@@ -61,7 +61,7 @@ const VerticalHeader = () => {
   let menuBarContent = null;
 
   const MainLogo = (
-    <Link href="/dashboard" className=" text-primary ">
+    <Link href="/overview" className=" text-primary ">
       <SiteLogo className="h-7 w-7" />
     </Link>
   );
