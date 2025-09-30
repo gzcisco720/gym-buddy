@@ -10,7 +10,6 @@ import Inbox from "./inbox";
 import HorizontalMenu from "./horizontal-menu";
 import NotificationMessage from "./notification-message";
 
-import Language from "./language";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import MobileMenuHandler from "./mobile-menu-handler";
 import ClassicHeader from "./layout/classic-header";
@@ -19,7 +18,6 @@ import FullScreen from "./full-screen";
 const NavTools = ({ isDesktop, isMobile, sidebarType }: { isDesktop: boolean; isMobile: boolean; sidebarType: string }) => {
   return (
     <div className="nav-tools flex items-center  gap-2">
-      {isDesktop && <Language />}
       {isDesktop && <FullScreen />}
 
       <ThemeButton />
@@ -33,10 +31,10 @@ const NavTools = ({ isDesktop, isMobile, sidebarType }: { isDesktop: boolean; is
     </div>
   );
 };
-const Header = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
-  const { collapsed, sidebarType, setCollapsed, subMenu, setSidebarType } =
+const Header = () => {
+  const { collapsed, sidebarType, setSidebarType } =
     useSidebar();
-  const { layout, navbarType, setLayout } = useThemeStore();
+  const { layout, navbarType } = useThemeStore();
 
   const isDesktop = useMediaQuery("(min-width: 1280px)");
 
@@ -59,7 +57,7 @@ const Header = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
       >
         <div className="w-full bg-card/90 backdrop-blur-lg md:px-6 px-[15px] py-3 border-b">
           <div className="flex justify-between items-center h-full">
-            <HorizontalHeader handleOpenSearch={handleOpenSearch} />
+            <HorizontalHeader />
             <NavTools
               isDesktop={isDesktop}
               isMobile={isMobile}
@@ -88,9 +86,7 @@ const Header = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
         <div className="xl:mx-20 mx-4">
           <div className="w-full bg-card/90 backdrop-blur-lg md:px-6 px-[15px] py-3 rounded-md my-6 shadow-md border-b">
             <div className="flex justify-between items-center h-full">
-              <VerticalHeader
-                handleOpenSearch={handleOpenSearch}
-              />
+              <VerticalHeader />
               <NavTools
                 isDesktop={isDesktop}
                 isMobile={isMobile}
@@ -117,10 +113,7 @@ const Header = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
       >
         <div className="w-full bg-card/90 backdrop-blur-lg md:px-6 px-[15px] py-3 border-b">
           <div className="flex justify-between items-center h-full">
-            <VerticalHeader
-
-              handleOpenSearch={handleOpenSearch}
-            />
+            <VerticalHeader />
             <NavTools
               isDesktop={isDesktop}
               isMobile={isMobile}
@@ -147,10 +140,7 @@ const Header = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
       >
         <div className="w-full bg-card/90 backdrop-blur-lg md:px-6 px-[15px] py-3 rounded-md my-6 shadow-md border-b">
           <div className="flex justify-between items-center h-full">
-            <VerticalHeader
-
-              handleOpenSearch={handleOpenSearch}
-            />
+            <VerticalHeader />
             <NavTools
               isDesktop={isDesktop}
               isMobile={isMobile}
@@ -173,10 +163,7 @@ const Header = ({ handleOpenSearch }: { handleOpenSearch: () => void }) => {
     >
       <div className="w-full bg-card/90 backdrop-blur-lg md:px-6 px-[15px] py-3 border-b">
         <div className="flex justify-between items-center h-full">
-          <VerticalHeader
-
-            handleOpenSearch={handleOpenSearch}
-          />
+          <VerticalHeader />
           <NavTools
             isDesktop={isDesktop}
             isMobile={isMobile}
