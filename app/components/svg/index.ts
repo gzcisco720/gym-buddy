@@ -87,6 +87,7 @@ export { default as Icons } from "./duel-tone/icons.svg";
 export { default as Sun } from "./duel-tone/sun.svg";
 export { default as Moon } from "./duel-tone/moon.svg";
 export { default as Device } from "./duel-tone/device.svg";
+export { default as BodyTest } from "./duel-tone/body-test.svg";
 
 // sidebar icon
 export { default as FolderTree } from "./home/foldertree.svg";

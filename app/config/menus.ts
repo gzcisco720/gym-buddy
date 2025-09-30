@@ -1,7 +1,7 @@
 
 import {
   DashBoard,
- 
+  BodyTest,
 } from "@/components/svg";
 
 
@@ -24,6 +24,11 @@ export const menusConfig = {
       icon: DashBoard,
       href: "/dashboard",
     },
+    {
+      title: "Body Test",
+      icon: BodyTest,
+      href: "/body-test",
+    },
   ],
   sidebarNav: {
     modern: [
@@ -31,6 +36,11 @@ export const menusConfig = {
         title: "Dashboard",
         icon: DashBoard,
         href: "/dashboard",
+      },
+      {
+        title: "Body Test",
+        icon: BodyTest,
+        href: "/body-test",
       },
     ],
     classic: [
@@ -42,6 +52,15 @@ export const menusConfig = {
         title: "Dashboard",
         icon: DashBoard,
         href: "/dashboard",
+      },
+      {
+        isHeader: true,
+        title: "fitness",
+      },
+      {
+        title: "Body Test",
+        icon: BodyTest,
+        href: "/body-test",
       },
     ],
   },
