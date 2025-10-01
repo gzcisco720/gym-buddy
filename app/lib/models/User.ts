@@ -19,28 +19,12 @@ export interface IUser extends Document {
   role: UserRole;
   isActive: boolean;
   isEmailVerified: boolean;
+  registrationCompleted: boolean; // Track if OAuth user completed registration
 
-  // Relationship fields
-  trainerId?: mongoose.Types.ObjectId; // For MEMBER role - assigned trainer
-  gymId?: mongoose.Types.ObjectId; // Future: gym association
-
-  // Profile information
+  // Basic profile information
   phone?: string;
   dateOfBirth?: Date;
-  emergencyContact?: {
-    name: string;
-    phone: string;
-    relationship: string;
-  };
-
-  // Fitness specific fields for MEMBER role
-  fitnessProfile?: {
-    height?: number; // in cm
-    weight?: number; // in kg
-    fitnessGoals?: string[];
-    medicalConditions?: string[];
-    fitnessLevel: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-  };
+  gender?: 'male' | 'female' | 'other';
 
   // OAuth provider information
   providers?: {
@@ -103,31 +87,17 @@ const UserSchema = new Schema<IUser>({
     type: Boolean,
     default: false
   },
-
-  // Relationships
-  trainerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    default: null,
-    validate: {
-      validator: function(this: IUser, value: any) {
-        // Only MEMBER role can have a trainerId
-        return this.role !== UserRole.MEMBER || value != null;
-      },
-      message: 'Members must be assigned to a trainer'
-    }
-  },
-  gymId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Gym', // Future implementation
-    default: null
+  registrationCompleted: {
+    type: Boolean,
+    default: true // Default true for credential signups, false for OAuth
   },
 
-  // Contact information
+  // Basic profile information
   phone: {
     type: String,
     trim: true,
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+    // Australian phone number validation: supports +61 4XX XXX XXX or 04XX XXX XXX (mobile) and +61 X XXXX XXXX or 0X XXXX XXXX (landline)
+    match: [/^(?:\+?61|0)(?:[2-478]\d{8}|4\d{8})$/, 'Please enter a valid Australian phone number']
   },
   dateOfBirth: {
     type: Date,
@@ -140,34 +110,10 @@ const UserSchema = new Schema<IUser>({
       message: 'Invalid date of birth'
     }
   },
-  emergencyContact: {
-    name: { type: String, trim: true },
-    phone: { type: String, trim: true },
-    relationship: { type: String, trim: true }
-  },
-
-  // Fitness profile for members
-  fitnessProfile: {
-    height: {
-      type: Number,
-      min: [50, 'Height must be at least 50cm'],
-      max: [300, 'Height cannot exceed 300cm']
-    },
-    weight: {
-      type: Number,
-      min: [20, 'Weight must be at least 20kg'],
-      max: [500, 'Weight cannot exceed 500kg']
-    },
-    fitnessGoals: [{
-      type: String,
-      enum: ['WEIGHT_LOSS', 'MUSCLE_GAIN', 'STRENGTH', 'ENDURANCE', 'FLEXIBILITY', 'GENERAL_FITNESS']
-    }],
-    medicalConditions: [String],
-    fitnessLevel: {
-      type: String,
-      enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'],
-      default: 'BEGINNER'
-    }
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other'],
+    lowercase: true
   },
 
   // OAuth providers
@@ -195,9 +141,30 @@ const UserSchema = new Schema<IUser>({
 // Indexes for better query performance
 // Note: email index is already created via unique: true in schema
 UserSchema.index({ role: 1 });
-UserSchema.index({ trainerId: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ createdAt: -1 });
+
+// Pre-save middleware to normalize dateOfBirth to date-only (no time)
+UserSchema.pre('save', function(next) {
+  if (this.isModified('dateOfBirth') && this.dateOfBirth) {
+    const date = new Date(this.dateOfBirth);
+    // Set time to midnight UTC to store only the date part
+    date.setUTCHours(0, 0, 0, 0);
+    this.dateOfBirth = date;
+  }
+  next();
+});
+
+// Pre-update middleware to normalize dateOfBirth to date-only (no time)
+UserSchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate() as any;
+  if (update && update.dateOfBirth) {
+    const date = new Date(update.dateOfBirth);
+    date.setUTCHours(0, 0, 0, 0);
+    update.dateOfBirth = date;
+  }
+  next();
+});
 
 // Pre-save middleware to hash password
 UserSchema.pre('save', async function(next) {
@@ -225,21 +192,6 @@ UserSchema.methods.toPublicJSON = function(): Partial<IUser> {
   delete userObject.__v;
   return userObject;
 };
-
-// Virtual for member's assigned trainer
-UserSchema.virtual('assignedTrainer', {
-  ref: 'User',
-  localField: 'trainerId',
-  foreignField: '_id',
-  justOne: true
-});
-
-// Virtual for trainer's members
-UserSchema.virtual('members', {
-  ref: 'User',
-  localField: '_id',
-  foreignField: 'trainerId'
-});
 
 // Static methods
 UserSchema.statics.findByEmail = function(email: string) {

@@ -218,7 +218,7 @@ const LogInForm = () => {
 
       <div className="mt-6 text-center text-base text-default-600">
         New to Gym Buddy?{" "}
-        <Link href="/auth/register" className="text-primary">
+        <Link href="/auth/signup" className="text-primary">
           Create Account
         </Link>
       </div>

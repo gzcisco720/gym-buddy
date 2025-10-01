@@ -1,20 +1,13 @@
 import { NextAuthOptions } from "next-auth";
-import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import { MongoClient } from "mongodb";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import connectToDatabase from "./mongodb";
 import User, { UserRole, IUser } from "./models/User";
-import TrainerMemberRelation from "./models/TrainerMemberRelation";
-
-// MongoDB client for NextAuth adapter
-const client = new MongoClient(process.env.MONGODB_URI!);
-const clientPromise = client.connect();
 
 export const authOptions: NextAuthOptions = {
-  // MongoDB adapter for session and account management
-  adapter: MongoDBAdapter(clientPromise),
+  // No adapter - we handle user creation manually in JWT callback
+  // This gives us full control over the user creation process
 
   providers: [
     GoogleProvider({
@@ -97,7 +90,6 @@ export const authOptions: NextAuthOptions = {
             image: user.avatar,
             role: user.role,
             isActive: user.isActive,
-            trainerId: user.trainerId?.toString(),
           };
         } catch (error) {
           console.error("Authentication error:", error);
@@ -113,13 +105,14 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Initial sign in
-      if (user) {
+    async jwt({ token, user, account, trigger }) {
+      // Initial credential sign in
+      if (user && !account) {
         token.role = user.role;
         token.userId = user.id;
         token.isActive = user.isActive;
-        token.trainerId = user.trainerId;
+        token.registrationCompleted = true; // Credential users are always complete
+        token.needsRegistration = false;
       }
 
       // Handle OAuth sign-ins
@@ -127,11 +120,11 @@ export const authOptions: NextAuthOptions = {
         try {
           await connectToDatabase();
 
-          // Find or create user
+          // Find existing user by email
           let dbUser = await User.findOne({ email: token.email });
 
           if (!dbUser) {
-            // Create new user for OAuth
+            // Create new OAuth user with registrationCompleted = false
             dbUser = await User.create({
               name: token.name,
               email: token.email,
@@ -139,6 +132,7 @@ export const authOptions: NextAuthOptions = {
               role: UserRole.MEMBER,
               isActive: true,
               isEmailVerified: true,
+              registrationCompleted: false, // Mark as incomplete for OAuth users
               providers: {
                 [account.provider]: {
                   id: account.providerAccountId,
@@ -146,8 +140,9 @@ export const authOptions: NextAuthOptions = {
                 },
               },
             });
+            console.log("✅ Created new OAuth user - registrationCompleted:", dbUser.registrationCompleted);
           } else {
-            // Update existing user with OAuth info
+            // Update existing user with OAuth provider info
             await User.findByIdAndUpdate(dbUser._id, {
               $set: {
                 [`providers.${account.provider}`]: {
@@ -157,14 +152,38 @@ export const authOptions: NextAuthOptions = {
                 lastLoginAt: new Date(),
               },
             });
+            console.log("✅ Existing user found - registrationCompleted:", dbUser.registrationCompleted);
           }
 
+          // Set token fields from database user
           token.role = dbUser.role;
           token.userId = dbUser._id.toString();
           token.isActive = dbUser.isActive;
           token.trainerId = dbUser.trainerId?.toString();
+          token.registrationCompleted = dbUser.registrationCompleted;
+          token.needsRegistration = !dbUser.registrationCompleted;
+
+          console.log("🔑 JWT Token set - needsRegistration:", token.needsRegistration, "registrationCompleted:", token.registrationCompleted);
         } catch (error) {
-          console.error("OAuth user creation/update error:", error);
+          console.error("❌ OAuth user creation/update error:", error);
+          throw error; // Fail the sign-in if we can't create/update user
+        }
+      }
+
+      // On subsequent requests, refresh user data from database
+      if (!account && token.userId) {
+        try {
+          await connectToDatabase();
+          const dbUser = await User.findById(token.userId).lean() as IUser | null;
+
+          if (dbUser) {
+            token.registrationCompleted = dbUser.registrationCompleted;
+            token.needsRegistration = !dbUser.registrationCompleted;
+            token.role = dbUser.role;
+            token.isActive = dbUser.isActive;
+          }
+        } catch (error) {
+          console.error("Error refreshing user data:", error);
         }
       }
 
@@ -177,7 +196,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.userId as string;
         session.user.role = token.role as UserRole;
         session.user.isActive = token.isActive as boolean;
-        session.user.trainerId = token.trainerId as string;
+        session.user.needsRegistration = token.needsRegistration as boolean;
+        session.user.registrationCompleted = token.registrationCompleted as boolean;
       }
 
       return session;
@@ -198,9 +218,11 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      // Redirect to dashboard after successful sign in
+      // Allow explicit redirects
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
+
+      // Default redirect to dashboard
       return `${baseUrl}/overview`;
     },
   },
