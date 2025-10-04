@@ -111,8 +111,15 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.userId = user.id;
         token.isActive = user.isActive;
-        token.registrationCompleted = true; // Credential users are always complete
-        token.needsRegistration = false;
+        // Fetch onboarding status from database
+        try {
+          await connectToDatabase();
+          const dbUser = await User.findById(user.id).lean() as IUser | null;
+          token.onboardingCompleted = dbUser?.onboardingCompleted || false;
+        } catch (error) {
+          console.error("Error fetching onboarding status:", error);
+          token.onboardingCompleted = false;
+        }
       }
 
       // Handle OAuth sign-ins
@@ -124,7 +131,7 @@ export const authOptions: NextAuthOptions = {
           let dbUser = await User.findOne({ email: token.email });
 
           if (!dbUser) {
-            // Create new OAuth user with registrationCompleted = false
+            // Create new OAuth user with onboardingCompleted = false
             dbUser = await User.create({
               name: token.name,
               email: token.email,
@@ -132,7 +139,8 @@ export const authOptions: NextAuthOptions = {
               role: UserRole.MEMBER,
               isActive: true,
               isEmailVerified: true,
-              registrationCompleted: false, // Mark as incomplete for OAuth users
+              registrationCompleted: false,
+              onboardingCompleted: false, // New users need to complete onboarding
               providers: {
                 [account.provider]: {
                   id: account.providerAccountId,
@@ -140,7 +148,7 @@ export const authOptions: NextAuthOptions = {
                 },
               },
             });
-            console.log("✅ Created new OAuth user - registrationCompleted:", dbUser.registrationCompleted);
+            console.log("✅ Created new OAuth user - onboardingCompleted:", dbUser.onboardingCompleted);
           } else {
             // Update existing user with OAuth provider info
             await User.findByIdAndUpdate(dbUser._id, {
@@ -152,7 +160,7 @@ export const authOptions: NextAuthOptions = {
                 lastLoginAt: new Date(),
               },
             });
-            console.log("✅ Existing user found - registrationCompleted:", dbUser.registrationCompleted);
+            console.log("✅ Existing user found - onboardingCompleted:", dbUser.onboardingCompleted);
           }
 
           // Set token fields from database user
@@ -160,27 +168,27 @@ export const authOptions: NextAuthOptions = {
           token.userId = dbUser._id.toString();
           token.isActive = dbUser.isActive;
           token.trainerId = dbUser.trainerId?.toString();
-          token.registrationCompleted = dbUser.registrationCompleted;
-          token.needsRegistration = !dbUser.registrationCompleted;
+          token.onboardingCompleted = dbUser.onboardingCompleted || false;
 
-          console.log("🔑 JWT Token set - needsRegistration:", token.needsRegistration, "registrationCompleted:", token.registrationCompleted);
+          console.log("🔑 JWT Token set - onboardingCompleted:", token.onboardingCompleted);
         } catch (error) {
           console.error("❌ OAuth user creation/update error:", error);
           throw error; // Fail the sign-in if we can't create/update user
         }
       }
 
-      // On subsequent requests, refresh user data from database
-      if (!account && token.userId) {
+      // On session update trigger, refresh user data from database
+      // This only runs when explicitly triggered (e.g., after onboarding completion)
+      // Not on every request, which improves performance
+      if (trigger === "update" && token.userId) {
         try {
           await connectToDatabase();
           const dbUser = await User.findById(token.userId).lean() as IUser | null;
 
           if (dbUser) {
-            token.registrationCompleted = dbUser.registrationCompleted;
-            token.needsRegistration = !dbUser.registrationCompleted;
             token.role = dbUser.role;
             token.isActive = dbUser.isActive;
+            token.onboardingCompleted = dbUser.onboardingCompleted || false;
           }
         } catch (error) {
           console.error("Error refreshing user data:", error);
@@ -196,8 +204,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.userId as string;
         session.user.role = token.role as UserRole;
         session.user.isActive = token.isActive as boolean;
-        session.user.needsRegistration = token.needsRegistration as boolean;
-        session.user.registrationCompleted = token.registrationCompleted as boolean;
+        session.user.onboardingCompleted = token.onboardingCompleted as boolean;
       }
 
       return session;

@@ -23,8 +23,9 @@ export interface IUser extends Document {
 
   // Basic profile information
   phone?: string;
-  dateOfBirth?: Date;
-  gender?: 'male' | 'female' | 'other';
+
+  // Onboarding status
+  onboardingCompleted: boolean; // Track if user completed fitness onboarding
 
   // OAuth provider information
   providers?: {
@@ -99,21 +100,11 @@ const UserSchema = new Schema<IUser>({
     // Australian phone number validation: supports +61 4XX XXX XXX or 04XX XXX XXX (mobile) and +61 X XXXX XXXX or 0X XXXX XXXX (landline)
     match: [/^(?:\+?61|0)(?:[2-478]\d{8}|4\d{8})$/, 'Please enter a valid Australian phone number']
   },
-  dateOfBirth: {
-    type: Date,
-    validate: {
-      validator: function(value: Date) {
-        const today = new Date();
-        const age = today.getFullYear() - value.getFullYear();
-        return age >= 13 && age <= 120; // Age restrictions
-      },
-      message: 'Invalid date of birth'
-    }
-  },
-  gender: {
-    type: String,
-    enum: ['male', 'female', 'other'],
-    lowercase: true
+
+  // Onboarding status
+  onboardingCompleted: {
+    type: Boolean,
+    default: false
   },
 
   // OAuth providers
@@ -143,28 +134,6 @@ const UserSchema = new Schema<IUser>({
 UserSchema.index({ role: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ createdAt: -1 });
-
-// Pre-save middleware to normalize dateOfBirth to date-only (no time)
-UserSchema.pre('save', function(next) {
-  if (this.isModified('dateOfBirth') && this.dateOfBirth) {
-    const date = new Date(this.dateOfBirth);
-    // Set time to midnight UTC to store only the date part
-    date.setUTCHours(0, 0, 0, 0);
-    this.dateOfBirth = date;
-  }
-  next();
-});
-
-// Pre-update middleware to normalize dateOfBirth to date-only (no time)
-UserSchema.pre('findOneAndUpdate', function(next) {
-  const update = this.getUpdate() as any;
-  if (update && update.dateOfBirth) {
-    const date = new Date(update.dateOfBirth);
-    date.setUTCHours(0, 0, 0, 0);
-    update.dateOfBirth = date;
-  }
-  next();
-});
 
 // Pre-save middleware to hash password
 UserSchema.pre('save', async function(next) {

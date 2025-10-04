@@ -29,6 +29,12 @@ const AuthGuard = ({ children, fallback }: AuthGuardProps) => {
       router.push("/auth/inactive");
       return;
     }
+
+    // If session exists but user hasn't completed onboarding, redirect to onboarding
+    if (session?.user && !session.user.onboardingCompleted) {
+      router.push("/onboarding");
+      return;
+    }
   }, [session, status, router]);
 
   // Show loading while checking authentication
@@ -55,7 +61,12 @@ const AuthGuard = ({ children, fallback }: AuthGuardProps) => {
     return null;
   }
 
-  // If authenticated and active, render children
+  // If user hasn't completed onboarding, don't render children
+  if (session?.user && !session.user.onboardingCompleted) {
+    return null;
+  }
+
+  // If authenticated, active, and onboarded, render children
   return <>{children}</>;
 };
 

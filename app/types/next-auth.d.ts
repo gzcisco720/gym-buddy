@@ -8,16 +8,14 @@ declare module "next-auth" {
       id: string;
       role: UserRole;
       isActive: boolean;
-      needsRegistration?: boolean;
-      registrationCompleted?: boolean;
+      onboardingCompleted?: boolean;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     role: UserRole;
     isActive: boolean;
-    needsRegistration?: boolean;
-    registrationCompleted?: boolean;
+    onboardingCompleted?: boolean;
   }
 }
 
@@ -26,7 +24,6 @@ declare module "next-auth/jwt" {
     userId: string;
     role: UserRole;
     isActive: boolean;
-    needsRegistration?: boolean;
-    registrationCompleted?: boolean;
+    onboardingCompleted?: boolean;
   }
 }

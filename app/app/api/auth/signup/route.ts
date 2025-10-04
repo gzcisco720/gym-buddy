@@ -12,12 +12,10 @@ export async function POST(request: NextRequest) {
       email,
       password,
       phone,
-      dateOfBirth,
-      gender,
     } = data;
 
     // Validate required fields
-    if (!userType || !name || !email || !password || !phone || !dateOfBirth || !gender) {
+    if (!userType || !name || !email || !password || !phone) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -42,11 +40,10 @@ export async function POST(request: NextRequest) {
       email: email.toLowerCase(),
       password,
       phone,
-      dateOfBirth: new Date(dateOfBirth),
-      gender: gender.toLowerCase(),
       role: userType === "trainer" ? UserRole.TRAINER : UserRole.MEMBER,
       isEmailVerified: false,
       registrationCompleted: true, // Registration is complete for credential signups
+      onboardingCompleted: false, // User needs to complete fitness onboarding
       lastLoginAt: new Date(),
     });
 

@@ -6,7 +6,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, User, UserCheck } from "lucide-react";
 import toast from "react-hot-toast";
@@ -27,8 +26,6 @@ const schema = z.object({
     .regex(/^(?:\+?61|0)(?:[2-478]\d{8}|4\d{8})$/, {
       message: "Please enter a valid Australian phone number (e.g., 0412345678 or +61412345678)"
     }),
-  dateOfBirth: z.date({ message: "Please select your date of birth." }),
-  gender: z.enum(["male", "female", "other"], { message: "Please select your gender" }),
   acceptTerms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
@@ -265,57 +262,6 @@ const SignupForm = () => {
         </div>
         {errors.phone && (
           <div className="text-destructive mt-2">{errors.phone.message}</div>
-        )}
-
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <div className="relative">
-            <Input
-              removeWrapper
-              type="date"
-              id="dateOfBirth"
-              size={!isDesktop2xl ? "xl" : "lg"}
-              disabled={isPending}
-              max={new Date().toISOString().split('T')[0]}
-              min="1900-01-01"
-              onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : undefined;
-                if (date) {
-                  setValue("dateOfBirth", date);
-                }
-              }}
-              className={cn("peer", {
-                "border-destructive": errors.dateOfBirth,
-              })}
-            />
-            <Label
-              htmlFor="dateOfBirth"
-              className="absolute text-base text-default-600 duration-300 transform -translate-y-5 scale-75 top-2 z-10 origin-[0] bg-background px-2 peer-focus:px-2
-                 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 
-                 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
-            >
-              Date of Birth
-            </Label>
-          </div>
-          
-          <div>
-            <Select onValueChange={(value) => setValue("gender", value as "male" | "female" | "other")}>
-              <SelectTrigger size={!isDesktop2xl ? "xl" : "lg"} className={cn({
-                "border-destructive": errors.gender,
-              })}>
-                <SelectValue placeholder="Select Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        {(errors.dateOfBirth || errors.gender) && (
-          <div className="text-destructive mt-2">
-            {errors.dateOfBirth?.message || errors.gender?.message}
-          </div>
         )}
 
         <div className="mt-5 flex items-center gap-3 mb-8">

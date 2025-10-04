@@ -8,6 +8,7 @@ import TanstackProvider from "@/provider/providers.client";
 import AuthProvider from "@/provider/auth.provider";
 import "flatpickr/dist/themes/light.css";
 import DirectionProvider from "@/provider/direction.provider";
+import { RouteLoadingProvider } from "@/components/RouteLoading";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -24,7 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <AuthProvider>
         <TanstackProvider>
           <Providers>
-            <DirectionProvider>{children}</DirectionProvider>
+            <DirectionProvider>
+              <RouteLoadingProvider>
+                {children}
+              </RouteLoadingProvider>
+            </DirectionProvider>
           </Providers>
         </TanstackProvider>
       </AuthProvider>
