@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **gym-buddy fitness dashboard** project built using the **DashTail** admin dashboard template. The project will serve as a comprehensive platform for fitness personal trainers and their clients.
+This is a **gym-buddy fitness dashboard** project built using the **DashTail** admin dashboard template. The project serves as a comprehensive platform for fitness enthusiasts to track their workouts, nutrition, and progress.
 
 ## Project Structure
 
@@ -46,6 +46,36 @@ The development server runs on http://localhost:3000.
 **IMPORTANT**: Before starting the development server, ALWAYS check if it's already running to avoid conflicts. Use tools like `BashOutput` to check existing background processes or look for port usage before running `npm run dev` or `pnpm run dev`.
 
 ## Architecture Overview
+
+### User Roles & Authentication
+
+The application uses a simplified role-based access control system:
+
+**User Roles:**
+- `USER` - Standard fitness enthusiast (default role for all new users)
+- `GYM_ADMIN` - Gym administrator with management capabilities
+- `SUPER_ADMIN` - System administrator with full access
+
+**Authentication Flow:**
+1. Users sign up via credentials (email/password) or OAuth (Google/GitHub)
+2. All new users are assigned the `USER` role by default
+3. After signup, users must complete the onboarding process:
+   - Basic info (phone number, terms acceptance)
+   - Profile data (gender, date of birth, height)
+   - Training info (level, activity level, years of training)
+   - Body composition (weight, body fat percentage)
+4. Only after completing onboarding can users access the dashboard
+
+**Key Models:**
+- `User` ([lib/models/User.ts](lib/models/User.ts)) - User authentication and basic info
+- `UserStaticProfile` - Static fitness profile data (gender, height, etc.)
+- `BodyComposition` - Trackable body metrics over time
+
+**Permission System:**
+- Located in [lib/permissions.ts](lib/permissions.ts)
+- Role hierarchy: USER (1) < GYM_ADMIN (2) < SUPER_ADMIN (3)
+- Users can only access and modify their own data
+- Admins have elevated permissions for user management
 
 ### Core Technologies
 - **Next.js 14** with App Router (`app/` directory structure)
@@ -124,19 +154,19 @@ AuthProvider
 2. **Feature Reference Mapping**
    - **Dashboard Analytics** → `example/app/[lang]/(dashboard)/(home)/dashboard/`
    - **User Profiles** → `example/app/[lang]/(dashboard)/user-profile/`
-   - **Forms (Member registration, assessments)** → `example/app/[lang]/(dashboard)/(forms)/`
+   - **Forms (User assessments, workout logging)** → `example/app/[lang]/(dashboard)/(forms)/`
    - **Charts (Progress tracking, stats)** → `example/app/[lang]/(dashboard)/(chart)/`
-   - **Calendar (Class scheduling, appointments)** → `example/app/[lang]/(dashboard)/(apps)/calendar/`
-   - **Data Tables (Member lists, workout history)** → `example/app/[lang]/(dashboard)/(tables)/`
-   - **Task Management (Workout plans, goals)** → `example/app/[lang]/(dashboard)/(apps)/task/`
+   - **Calendar (Workout scheduling)** → `example/app/[lang]/(dashboard)/(apps)/calendar/`
+   - **Data Tables (Workout history, nutrition logs)** → `example/app/[lang]/(dashboard)/(tables)/`
+   - **Task Management (Workout plans, fitness goals)** → `example/app/[lang]/(dashboard)/(apps)/task/`
    - **Authentication** → `example/app/[lang]/auth/`
 
 3. **Key Components for Fitness Features**
    - **Progress Tracking**: Use progress bars from `example/components/ui/progress.tsx`
    - **Workout Charts**: ApexCharts, Recharts examples in `(chart)` directories
-   - **Member Management**: Table components with search/filter from `(tables)` directories
-   - **Class Scheduling**: FullCalendar integration from `(apps)/calendar`
-   - **Ratings/Reviews**: Rating components from `(forms)/rating`
+   - **Data Tables**: Table components with search/filter from `(tables)` directories
+   - **Workout Scheduling**: FullCalendar integration from `(apps)/calendar`
+   - **Goal Tracking**: Rating components from `(forms)/rating`
    - **Statistics Cards**: Dashboard cards from `(home)/dashboard/components/`
 
 ### DashTail Template Features Available
@@ -144,14 +174,14 @@ AuthProvider
 **Fitness-Relevant Components (200+ total):**
 - **18 Chart types** (ApexCharts, Recharts, Chart.js, Unovis) for tracking fitness metrics
 - **54+ UI components** including forms, tables, progress indicators
-- **Calendar integration** with FullCalendar for class/session scheduling
+- **Calendar integration** with FullCalendar for workout scheduling
 - **User profile system** with activity tracking and settings
 - **Data visualization** for progress tracking, statistics, analytics
 - **Task management** system for workout plans and goals
-- **Authentication system** with NextAuth.js integration
+- **Authentication system** with NextAuth.js (credentials + OAuth)
 - **Multiple dashboard layouts** (analytics, ecommerce, project)
-- **Advanced form components** with validation for member registration/assessments
-- **Rating systems** for trainer/class feedback
+- **Advanced form components** with validation for user assessments
+- **Rating systems** for workout difficulty and satisfaction
 - **Timeline components** for workout history and progress tracking
 
 ### Theme Configuration
@@ -163,15 +193,18 @@ AuthProvider
 ```
 app/
 ├── app/(dashboard)/
-│   ├── members/           # Member management pages
-│   ├── trainers/          # Trainer management
 │   ├── workouts/          # Workout plans & tracking
-│   ├── classes/           # Class scheduling & management
+│   ├── nutrition/         # Nutrition tracking & meal plans
+│   ├── progress/          # Progress tracking & body composition
 │   ├── analytics/         # Fitness analytics & reports
 │   └── settings/          # App configuration
 ├── components/
 │   ├── fitness/           # Gym-buddy specific components
 │   └── ui/               # Reusable UI components (from DashTail)
+├── lib/
+│   ├── models/           # MongoDB models (User, UserStaticProfile, BodyComposition)
+│   ├── auth.ts           # NextAuth configuration
+│   └── permissions.ts    # Role-based access control
 └── config/
     └── menus.ts          # Navigation structure for gym features
 ```

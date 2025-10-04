@@ -29,17 +29,16 @@ export const useThemeStore = create<ThemeStoreState>()(
       setLayout: (value) => {
         set({ layout: value });
 
-        // If the new layout is "semibox," also set the sidebarType to "popover"
+        // Sync sidebarType with layout
         if (value === "semibox") {
           useSidebar.setState({ sidebarType: "popover" });
-        }
-        if (value === "horizontal") {
+        } else if (value === "horizontal") {
           useSidebar.setState({ sidebarType: "classic" });
-        }
-        //
-        if (value === "horizontal") {
-          // update  setNavbarType
+          // update navbarType for horizontal layout
           useThemeStore.setState({ navbarType: "sticky" });
+        } else if (value === "vertical") {
+          // For vertical layout, use classic sidebar with hover functionality
+          useSidebar.setState({ sidebarType: "classic" });
         }
       },
       navbarType: siteConfig.navbarType,
@@ -79,7 +78,11 @@ export const useSidebar = create<SidebarState>()(
           collapsed: false,
       setCollapsed: (value) => set({ collapsed: value }),
       sidebarType:
-        siteConfig.layout === "semibox" ? "popover" : siteConfig.sidebarType,
+        siteConfig.layout === "semibox" 
+          ? "popover" 
+          : siteConfig.layout === "vertical" 
+            ? "classic" 
+            : siteConfig.sidebarType,
       setSidebarType: (value) => {
         set({ sidebarType: value });
       },

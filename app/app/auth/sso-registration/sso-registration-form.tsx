@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,21 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Icon } from "@iconify/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SiteLogo } from "@/components/svg";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 const schema = z.object({
-  // Account Info
-  name: z.string().min(3, { message: "Name must be at least 3 characters." }),
-  email: z.string().email({ message: "Your email is invalid." }),
-  password: z.string().min(4, { message: "Password must be at least 4 characters." }),
-
-  // Personal Info
+  // Basic Info
   phone: z.string()
     .regex(/^(?:\+?61|0)(?:[2-478]\d{8}|4\d{8})$/, {
       message: "Please enter a valid Australian phone number (e.g., 0412345678 or +61412345678)"
@@ -34,7 +27,7 @@ const schema = z.object({
     required_error: "Please select your gender",
   }),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-
+  
   // Fitness Info
   height: z.number().min(120, "Height must be at least 120 cm").max(250, "Height must not exceed 250 cm"),
   weight: z.number().min(30, "Weight must be at least 30 kg").max(300, "Weight must not exceed 300 kg"),
@@ -45,7 +38,7 @@ const schema = z.object({
     required_error: "Please select your activity level",
   }),
   trainingYears: z.number().min(0, "Training years cannot be negative").max(100, "Training years cannot exceed 100"),
-
+  
   acceptTerms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
@@ -53,20 +46,15 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const SignupForm = () => {
+const SsoRegistrationForm = () => {
   const [isPending, startTransition] = React.useTransition();
-  const [passwordType, setPasswordType] = useState("password");
   const isDesktop2xl = useMediaQuery("(max-width: 1530px)");
-
-  const togglePasswordType = () => {
-    setPasswordType(prev => prev === "password" ? "text" : "password");
-  };
-
+  const { data: session, update } = useSession();
   const router = useRouter();
+
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     watch,
     formState: { errors },
@@ -81,132 +69,70 @@ const SignupForm = () => {
   const trainingLevel = watch("trainingLevel");
   const activityLevel = watch("activityLevel");
 
+  React.useEffect(() => {
+    if (session && !session.user?.needsRegistration) {
+      router.push("/overview");
+    }
+  }, [session, router]);
+
   const onSubmit = (data: FormData) => {
     startTransition(async () => {
       try {
-        const response = await fetch("/api/auth/signup", {
+        const response = await fetch("/api/auth/sso-registration", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            phone: data.phone,
+            gender: data.gender,
+            dateOfBirth: data.dateOfBirth,
+            height: data.height,
+            weight: data.weight,
+            trainingLevel: data.trainingLevel,
+            activityLevel: data.activityLevel,
+            trainingYears: data.trainingYears,
+          }),
         });
 
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.error || "Failed to create account");
+          throw new Error(result.error || "Failed to complete registration");
         }
 
-        toast.success("Account created successfully! Logging you in...");
-        
-        // Automatically sign in the user with their credentials
-        const signInResult = await signIn("credentials", {
-          email: data.email,
-          password: data.password,
-          redirect: false,
-        });
-
-        if (signInResult?.error) {
-          toast.error("Account created but login failed. Please login manually.");
-          router.push("/auth/login");
-        } else {
-          // Successfully signed in, redirect to overview
-          router.push("/overview");
-        }
+        await update();
+        toast.success("Registration completed! Welcome to Gym Buddy! 💪");
+        router.push("/overview");
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to create account. Please try again.");
+        toast.error(error instanceof Error ? error.message : "Failed to complete registration. Please try again.");
       }
     });
   };
 
+  if (!session?.user) {
+    return null;
+  }
+
   return (
     <div className="w-full">
-      <Link href="/dashboard" className="inline-block">
-        <SiteLogo className="h-10 w-10 2xl:w-14 2xl:h-14 text-primary" />
-      </Link>
+      <SiteLogo className="h-10 w-10 2xl:w-14 2xl:h-14 text-primary mb-6" />
       <div className="2xl:mt-8 mt-6 2xl:text-3xl text-2xl font-bold text-default-900">
-        Join Gym Buddy 💪
+        Complete Your Profile
       </div>
       <div className="2xl:text-lg text-base text-default-600 mt-2 leading-6">
-        Create your account to start your fitness journey
+        Welcome {session.user.name}! Let&apos;s set up your fitness profile.
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-5 xl:mt-7 space-y-6">
-        {/* Account Information Section */}
-        <div className="bg-card p-5 rounded-lg border">
-          <h3 className="text-lg font-semibold text-default-900 mb-4">Account Information</h3>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name" className="text-sm font-medium text-default-900 mb-2 block">
-                Full Name *
-              </Label>
-              <Input
-                removeWrapper
-                type="text"
-                id="name"
-                size={!isDesktop2xl ? "xl" : "lg"}
-                placeholder="John Doe"
-                disabled={isPending}
-                {...register("name")}
-                className={cn({ "border-destructive": errors.name })}
-              />
-              {errors.name && (
-                <div className="text-destructive text-sm mt-1">{errors.name.message}</div>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium text-default-900 mb-2 block">
-                Email *
-              </Label>
-              <Input
-                removeWrapper
-                type="email"
-                id="email"
-                size={!isDesktop2xl ? "xl" : "lg"}
-                placeholder="john@example.com"
-                disabled={isPending}
-                {...register("email")}
-                className={cn({ "border-destructive": errors.email })}
-              />
-              {errors.email && (
-                <div className="text-destructive text-sm mt-1">{errors.email.message}</div>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium text-default-900 mb-2 block">
-                Password *
-              </Label>
-              <div className="relative">
-                <Input
-                  removeWrapper
-                  type={passwordType}
-                  id="password"
-                  size={!isDesktop2xl ? "xl" : "lg"}
-                  placeholder="Enter your password"
-                  disabled={isPending}
-                  {...register("password")}
-                  className={cn({ "border-destructive": errors.password })}
-                />
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 ltr:right-4 rtl:left-4 cursor-pointer"
-                  onClick={togglePasswordType}
-                >
-                  {passwordType === "password" ? (
-                    <Icon icon="heroicons:eye" className="w-5 h-5 text-default-400" />
-                  ) : (
-                    <Icon icon="heroicons:eye-slash" className="w-5 h-5 text-default-400" />
-                  )}
-                </div>
-              </div>
-              {errors.password && (
-                <div className="text-destructive text-sm mt-1">{errors.password.message}</div>
-              )}
-            </div>
-          </div>
+        {/* Account Info */}
+        <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg">
+          <p className="text-sm text-default-700 dark:text-default-300">
+            <span className="font-semibold">✓ Account Connected</span>
+          </p>
+          <p className="text-xs text-default-600 dark:text-default-400 mt-1">
+            Email: {session.user.email}
+          </p>
         </div>
 
         {/* Basic Information Section */}
@@ -232,7 +158,7 @@ const SignupForm = () => {
                 })}
               />
               {errors.phone && (
-                <div className="text-destructive text-sm mt-1">{errors.phone.message}</div>
+                <div className="text-destructive text-sm mt-2">{errors.phone.message}</div>
               )}
             </div>
 
@@ -254,7 +180,7 @@ const SignupForm = () => {
                   </div>
                 </RadioGroup>
                 {errors.gender && (
-                  <div className="text-destructive text-sm mt-1">{errors.gender.message}</div>
+                  <div className="text-destructive text-sm mt-2">{errors.gender.message}</div>
                 )}
               </div>
 
@@ -275,7 +201,7 @@ const SignupForm = () => {
                   })}
                 />
                 {errors.dateOfBirth && (
-                  <div className="text-destructive text-sm mt-1">{errors.dateOfBirth.message}</div>
+                  <div className="text-destructive text-sm mt-2">{errors.dateOfBirth.message}</div>
                 )}
               </div>
             </div>
@@ -295,7 +221,6 @@ const SignupForm = () => {
                 removeWrapper
                 type="number"
                 id="height"
-                size={!isDesktop2xl ? "xl" : "lg"}
                 placeholder="170"
                 disabled={isPending}
                 {...register("height", { valueAsNumber: true })}
@@ -316,7 +241,6 @@ const SignupForm = () => {
                 removeWrapper
                 type="number"
                 id="weight"
-                size={!isDesktop2xl ? "xl" : "lg"}
                 placeholder="70"
                 disabled={isPending}
                 {...register("weight", { valueAsNumber: true })}
@@ -385,7 +309,6 @@ const SignupForm = () => {
                 removeWrapper
                 type="number"
                 id="trainingYears"
-                size={!isDesktop2xl ? "xl" : "lg"}
                 placeholder="2"
                 disabled={isPending}
                 {...register("trainingYears", { valueAsNumber: true })}
@@ -427,18 +350,11 @@ const SignupForm = () => {
           size={!isDesktop2xl ? "lg" : "md"}
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending ? "Creating Your Account..." : "Create Account"}
+          {isPending ? "Creating Your Profile..." : "Complete Registration"}
         </Button>
-
-        <div className="text-center text-base text-default-600 mt-5">
-          Already have an account?{" "}
-          <Link href="/auth/login" className="text-primary font-medium">
-            Sign In
-          </Link>
-        </div>
       </form>
     </div>
   );
 };
 
-export default SignupForm;
+export default SsoRegistrationForm;

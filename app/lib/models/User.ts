@@ -4,8 +4,7 @@ import bcrypt from 'bcryptjs';
 // User Role Enum
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
-  TRAINER = 'TRAINER',
-  MEMBER = 'MEMBER',
+  USER = 'USER',
   GYM_ADMIN = 'GYM_ADMIN' // Future implementation
 }
 
@@ -23,21 +22,8 @@ export interface IUser extends Document {
 
   // Basic profile information
   phone?: string;
-
-  // Onboarding status
-  onboardingCompleted: boolean; // Track if user completed fitness onboarding
-
-  // OAuth provider information
-  providers?: {
-    google?: {
-      id: string;
-      verified: boolean;
-    };
-    github?: {
-      id: string;
-      verified: boolean;
-    };
-  };
+  gender?: 'male' | 'female';
+  dateOfBirth?: Date;
 
   // Timestamps
   lastLoginAt?: Date;
@@ -77,7 +63,7 @@ const UserSchema = new Schema<IUser>({
   role: {
     type: String,
     enum: Object.values(UserRole),
-    default: UserRole.MEMBER,
+    default: UserRole.USER,
     required: true
   },
   isActive: {
@@ -100,23 +86,12 @@ const UserSchema = new Schema<IUser>({
     // Australian phone number validation: supports +61 4XX XXX XXX or 04XX XXX XXX (mobile) and +61 X XXXX XXXX or 0X XXXX XXXX (landline)
     match: [/^(?:\+?61|0)(?:[2-478]\d{8}|4\d{8})$/, 'Please enter a valid Australian phone number']
   },
-
-  // Onboarding status
-  onboardingCompleted: {
-    type: Boolean,
-    default: false
+  gender: {
+    type: String,
+    enum: ['male', 'female']
   },
-
-  // OAuth providers
-  providers: {
-    google: {
-      id: String,
-      verified: { type: Boolean, default: false }
-    },
-    github: {
-      id: String,
-      verified: { type: Boolean, default: false }
-    }
+  dateOfBirth: {
+    type: Date
   },
 
   lastLoginAt: {

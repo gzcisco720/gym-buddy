@@ -15,6 +15,13 @@ const AuthGuard = ({ children, fallback }: AuthGuardProps) => {
   const router = useRouter();
 
   useEffect(() => {
+    console.log("🔍 AuthGuard check:", {
+      status,
+      hasSession: !!session,
+      isActive: session?.user?.isActive,
+      needsRegistration: session?.user?.needsRegistration,
+    });
+
     // If session is loading, do nothing
     if (status === "loading") return;
 
@@ -24,15 +31,10 @@ const AuthGuard = ({ children, fallback }: AuthGuardProps) => {
       return;
     }
 
-    // If session exists but user is inactive, redirect to inactive page
-    if (session?.user && !session.user.isActive) {
+    // If session exists but user is EXPLICITLY inactive (strict check), redirect to inactive page
+    if (session?.user && session.user.isActive === false) {
+      console.log("❌ User is inactive, redirecting to /auth/inactive");
       router.push("/auth/inactive");
-      return;
-    }
-
-    // If session exists but user hasn't completed onboarding, redirect to onboarding
-    if (session?.user && !session.user.onboardingCompleted) {
-      router.push("/onboarding");
       return;
     }
   }, [session, status, router]);
@@ -41,8 +43,8 @@ const AuthGuard = ({ children, fallback }: AuthGuardProps) => {
   if (status === "loading") {
     return (
       fallback || (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="flex flex-col items-center space-y-4">
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <div className="flex items-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Loading...</p>
           </div>
@@ -56,17 +58,12 @@ const AuthGuard = ({ children, fallback }: AuthGuardProps) => {
     return null;
   }
 
-  // If user is inactive, don't render children
-  if (session?.user && !session.user.isActive) {
+  // If user is EXPLICITLY inactive (strict check), don't render children
+  if (session?.user && session.user.isActive === false) {
     return null;
   }
 
-  // If user hasn't completed onboarding, don't render children
-  if (session?.user && !session.user.onboardingCompleted) {
-    return null;
-  }
-
-  // If authenticated, active, and onboarded, render children
+  // If authenticated and active, render children
   return <>{children}</>;
 };
 

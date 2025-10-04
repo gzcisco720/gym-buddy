@@ -2,10 +2,9 @@ import { UserRole } from "./models/User";
 
 // Role hierarchy levels
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
-  [UserRole.SUPER_ADMIN]: 4,
-  [UserRole.GYM_ADMIN]: 3,
-  [UserRole.TRAINER]: 2,
-  [UserRole.MEMBER]: 1,
+  [UserRole.SUPER_ADMIN]: 3,
+  [UserRole.GYM_ADMIN]: 2,
+  [UserRole.USER]: 1,
 };
 
 // Permission checker functions
@@ -23,8 +22,7 @@ export class PermissionChecker {
   static canAccessUserData(
     accessorRole: UserRole,
     targetUserId: string,
-    accessorUserId: string,
-    trainerMemberRelation?: { trainerId: string; memberId: string }
+    accessorUserId: string
   ): boolean {
     // Super admin can access everything
     if (accessorRole === UserRole.SUPER_ADMIN) {
@@ -36,14 +34,6 @@ export class PermissionChecker {
       return true;
     }
 
-    // Trainers can access their assigned members' data
-    if (accessorRole === UserRole.TRAINER && trainerMemberRelation) {
-      return (
-        trainerMemberRelation.trainerId === accessorUserId &&
-        trainerMemberRelation.memberId === targetUserId
-      );
-    }
-
     return false;
   }
 
@@ -53,8 +43,7 @@ export class PermissionChecker {
   static canModifyUserData(
     accessorRole: UserRole,
     targetUserId: string,
-    accessorUserId: string,
-    trainerMemberRelation?: { trainerId: string; memberId: string }
+    accessorUserId: string
   ): boolean {
     // Super admin can modify everything
     if (accessorRole === UserRole.SUPER_ADMIN) {
@@ -66,22 +55,7 @@ export class PermissionChecker {
       return true;
     }
 
-    // Trainers can modify specific fields of their assigned members
-    if (accessorRole === UserRole.TRAINER && trainerMemberRelation) {
-      return (
-        trainerMemberRelation.trainerId === accessorUserId &&
-        trainerMemberRelation.memberId === targetUserId
-      );
-    }
-
     return false;
-  }
-
-  /**
-   * Check if user can assign members to trainers
-   */
-  static canAssignMembers(userRole: UserRole): boolean {
-    return this.hasMinimumRole(userRole, UserRole.GYM_ADMIN);
   }
 
   /**
@@ -93,14 +67,9 @@ export class PermissionChecker {
       return true;
     }
 
-    // Gym admin can create trainers and members
+    // Gym admin can create users
     if (creatorRole === UserRole.GYM_ADMIN) {
-      return targetRole === UserRole.TRAINER || targetRole === UserRole.MEMBER;
-    }
-
-    // Trainers can create members
-    if (creatorRole === UserRole.TRAINER) {
-      return targetRole === UserRole.MEMBER;
+      return targetRole === UserRole.USER;
     }
 
     return false;
@@ -115,9 +84,9 @@ export class PermissionChecker {
       return targetRole !== UserRole.SUPER_ADMIN;
     }
 
-    // Gym admin can delete trainers and members
+    // Gym admin can delete users
     if (deleterRole === UserRole.GYM_ADMIN) {
-      return targetRole === UserRole.TRAINER || targetRole === UserRole.MEMBER;
+      return targetRole === UserRole.USER;
     }
 
     return false;
@@ -127,7 +96,7 @@ export class PermissionChecker {
    * Check if user can view system analytics
    */
   static canViewAnalytics(userRole: UserRole): boolean {
-    return this.hasMinimumRole(userRole, UserRole.TRAINER);
+    return this.hasMinimumRole(userRole, UserRole.GYM_ADMIN);
   }
 
   /**
@@ -143,8 +112,7 @@ export class PermissionChecker {
   static canAccessWorkoutPlans(
     accessorRole: UserRole,
     planOwnerId: string,
-    accessorUserId: string,
-    trainerMemberRelation?: { trainerId: string; memberId: string }
+    accessorUserId: string
   ): boolean {
     // Super admin can access all plans
     if (accessorRole === UserRole.SUPER_ADMIN) {
@@ -154,14 +122,6 @@ export class PermissionChecker {
     // Users can access their own plans
     if (accessorUserId === planOwnerId) {
       return true;
-    }
-
-    // Trainers can access their assigned members' plans
-    if (accessorRole === UserRole.TRAINER && trainerMemberRelation) {
-      return (
-        trainerMemberRelation.trainerId === accessorUserId &&
-        trainerMemberRelation.memberId === planOwnerId
-      );
     }
 
     return false;
@@ -174,7 +134,7 @@ export class PermissionChecker {
     const actions: string[] = [];
 
     // Base actions for all authenticated users
-    actions.push('view_own_profile', 'edit_own_profile', 'view_own_workouts');
+    actions.push('view_own_profile', 'edit_own_profile', 'view_own_workouts', 'log_workouts', 'view_progress');
 
     switch (userRole) {
       case UserRole.SUPER_ADMIN:
@@ -184,7 +144,6 @@ export class PermissionChecker {
           'modify_all_data',
           'manage_gym_settings',
           'view_system_analytics',
-          'assign_members',
           'delete_users',
           'create_users'
         );
@@ -192,31 +151,16 @@ export class PermissionChecker {
 
       case UserRole.GYM_ADMIN:
         actions.push(
-          'manage_trainers',
-          'manage_members',
-          'assign_members',
+          'manage_users',
           'view_gym_analytics',
           'manage_gym_settings',
-          'create_trainers',
-          'create_members',
-          'delete_trainers',
-          'delete_members'
+          'create_users',
+          'delete_users'
         );
         break;
 
-      case UserRole.TRAINER:
-        actions.push(
-          'view_assigned_members',
-          'manage_member_workouts',
-          'view_member_progress',
-          'create_workout_plans',
-          'view_trainer_analytics',
-          'create_members'
-        );
-        break;
-
-      case UserRole.MEMBER:
-        actions.push('view_workout_plan', 'log_workouts', 'view_progress');
+      case UserRole.USER:
+        // User has only base actions
         break;
     }
 
@@ -238,10 +182,6 @@ export const isSuperAdmin = (userRole: UserRole): boolean => {
   return userRole === UserRole.SUPER_ADMIN;
 };
 
-export const isTrainer = (userRole: UserRole): boolean => {
-  return userRole === UserRole.TRAINER;
-};
-
-export const isMember = (userRole: UserRole): boolean => {
-  return userRole === UserRole.MEMBER;
+export const isUser = (userRole: UserRole): boolean => {
+  return userRole === UserRole.USER;
 };
